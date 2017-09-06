@@ -11,6 +11,10 @@ this file and include it in basic-server.js so that it actually works.
 *Hint* Check out the node module documentation at http://nodejs.org/api/modules.html.
 
 **************************************************************/
+var messages = {
+  results: [
+  ]
+};
 
 var requestHandler = function(request, response) {
   // Request and Response come from node's http module.
@@ -27,8 +31,9 @@ var requestHandler = function(request, response) {
   // Adding more logging to your server can be an easy way to get passive
   // debugging help, but you should always be careful about leaving stray
   // console.logs in your code.
-  console.log('Serving request type ' + request.method + ' for url ' + request.url);
-
+  // console.log('Serving request type ' + request.method + ' for url ' + request.url);
+  // console.log('############### request-handler.js, request: ', request);
+  // console.log('############### request-handler.js, response: ', response);
   // The outgoing status.
   var statusCode = 200;
 
@@ -45,6 +50,42 @@ var requestHandler = function(request, response) {
   // which includes the status and all headers.
   response.writeHead(statusCode, headers);
 
+  if (request.url !== '/classes/messages') {
+    response.writeHead(404, headers)
+    response.end()
+  }
+
+  if (request.method === 'GET') {
+    response.writeHead(200, headers);
+    response.end(JSON.stringify(messages));
+  }
+
+  if (request.method === 'POST') {
+    var strConcat = '';
+    var myObj;
+    request.on('data', function(chunk) {
+      strConcat += chunk;
+    });
+
+    request.on('end', function() {
+      myObj = JSON.parse(strConcat);
+      messages.results.push(myObj);
+      response.writeHead(201, headers);
+      console.log('request-handler.js, messages: ', messages);
+      response.end(messages);
+    })
+
+
+    // console.log('request-handler.js, BEFORE PUSH (request._postData): ', request._postData);
+    // console.log(request)
+    // messages.results.push(request._postData)
+    // console.log('length of messages, ', messages.results.length)
+
+    // console.log('response._data: ', response._data);
+    // response._data = messages;
+    // console.log('request-handler.js, AFTER PUSH (messages): ', messages)
+  }
+
   // Make sure to always call response.end() - Node may not send
   // anything back to the client until you do. The string you pass to
   // response.end() will be the body of the response - i.e. what shows
@@ -52,7 +93,8 @@ var requestHandler = function(request, response) {
   //
   // Calling .end "flushes" the response's internal buffer, forcing
   // node to actually send all the data over to the client.
-  response.end('{"hi": "world"}');
+
+
 };
 
 // These headers will allow Cross-Origin Resource Sharing (CORS).
