@@ -14,11 +14,16 @@ this file and include it in basic-server.js so that it actually works.
 var defaultCorsHeaders = {
   'access-control-allow-origin': '*',
   'access-control-allow-methods': 'GET, POST, PUT, DELETE, OPTIONS',
+  // 'access-control-allow-headers': 'content-type, accept, X-Parse-Application-Id, X-Parse-REST-API-Key',
   'access-control-allow-headers': 'content-type, accept',
   'access-control-max-age': 10 // Seconds.
 };
 var messages = {
   results: [
+    {
+      username: 'Jona',
+      text: 'hello world'
+    }
   ]
 };
 
@@ -37,7 +42,7 @@ var requestHandler = function(request, response) {
   // Adding more logging to your server can be an easy way to get passive
   // debugging help, but you should always be careful about leaving stray
   // console.logs in your code.
-  // console.log('Serving request type ' + request.method + ' for url ' + request.url);
+  console.log('Serving request type ' + request.method + ' for url ' + request.url);
   // console.log('############### request-handler.js, request: ', request);
   // console.log('############### request-handler.js, response: ', response);
   // The outgoing status.
@@ -58,12 +63,19 @@ var requestHandler = function(request, response) {
 
   if (request.url !== '/classes/messages') {
     response.writeHead(404, headers);
-    response.end();
+    response.end(messages);
   }
 
   if (request.method === 'GET') {
+    console.log('request-handler.js (GET)');
     response.writeHead(200, headers);
     response.end(JSON.stringify(messages));
+  }
+
+  if (request.method === 'OPTIONS') {
+    console.log('request-handler.js (OPTIONS)');
+    response.writeHead(200, headers);
+    response.end();
   }
 
   if (request.method === 'POST') {
@@ -71,13 +83,16 @@ var requestHandler = function(request, response) {
     var myObj;
     response.writeHead(201, headers);
     request.on('data', function(chunk) {
+      console.log('chunk is: ', chunk);
       strConcat += chunk;
     });
 
     request.on('end', function() {
+      console.log('request-handler.js, on(end): ', strConcat, '\n+++++++++++++++++++');
+      response.writeHead(201, headers);
       myObj = JSON.parse(strConcat);
-      messages.results.push(myObj);
-      response.end();
+      messages.results.unshift(myObj);
+      response.end(JSON.stringify({}));
     });
 
   }
