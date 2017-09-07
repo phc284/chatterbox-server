@@ -63,6 +63,7 @@ var requestHandler = function(request, response) {
   if (request.method === 'POST') {
     var strConcat = '';
     var myObj;
+    response.writeHead(201, headers);
     request.on('data', function(chunk) {
       strConcat += chunk;
     });
@@ -70,20 +71,9 @@ var requestHandler = function(request, response) {
     request.on('end', function() {
       myObj = JSON.parse(strConcat);
       messages.results.push(myObj);
-      response.writeHead(201, headers);
-      console.log('request-handler.js, messages: ', messages);
-      response.end(messages);
+      response.end();
     })
 
-
-    // console.log('request-handler.js, BEFORE PUSH (request._postData): ', request._postData);
-    // console.log(request)
-    // messages.results.push(request._postData)
-    // console.log('length of messages, ', messages.results.length)
-
-    // console.log('response._data: ', response._data);
-    // response._data = messages;
-    // console.log('request-handler.js, AFTER PUSH (messages): ', messages)
   }
 
   // Make sure to always call response.end() - Node may not send
